@@ -1,7 +1,7 @@
 import Joi from "joi";
 
 export const shareControllerValidator = Joi.object({
-  _csrf: Joi.string().required(),
+  csrfToken: Joi.string().required(),
 
   userName: Joi.string().pattern(new RegExp("^[a-z]+$")).required(),
   postId: Joi.string()
