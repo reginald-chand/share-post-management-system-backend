@@ -2,6 +2,7 @@ import { ShareModel } from "../../models/share/share.model.mjs";
 import { SharedPostModel } from "../../models/share/shared.model.mjs";
 import { logger } from "../../configs/logger.config.mjs";
 import mongoose from "mongoose";
+import { redisClient } from "../../configs/redis.client.config.mjs";
 import { shareControllerValidator } from "../../validators/share/share.controller.validator.mjs";
 
 export const shareController = async (request, response) => {
@@ -11,10 +12,16 @@ export const shareController = async (request, response) => {
     return response.status(400).json({ responseMessage: error.message });
   }
 
-  const { userName, postId, userData } = value;
+  const { userName, postId, csrfToken, userData } = value;
   const rePost = request.query.rePost;
 
   try {
+    const userSession = await redisClient.hGetAll(userData.email);
+
+    if (csrfToken !== userSession.csrfToken) {
+      return response.status(401).json({ responseMessage: "UnAuthorized." });
+    }
+
     const database = mongoose.connection.db;
 
     const existingUser = await database
